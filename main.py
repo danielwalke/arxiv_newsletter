@@ -121,6 +121,12 @@ def get_enhanced_prompt():
     to generate HTML output and strictly avoid Markdown.
     """
     prompt_template = ChatPromptTemplate.from_messages([
+        ("system", """
+    Returns a ChatPromptTemplate with significantly enhanced instructions for the LLM
+    to generate a coherent HTML narrative with clickable links and author mentions,
+    and strictly avoid Markdown or mere enumeration.
+    """
+    prompt_template = ChatPromptTemplate.from_messages([
         ("system", """You are an expert HTML/CSS generating AI assistant. Your sole and primary task is to generate a single, consolidated English summary website fragment in raw, well-formatted HTML and embedded CSS ONLY. This summary will be based on a list of research contributions that will be provided to you. Each contribution includes the author(s), a brief summary of their work, and a direct HTML link for further details.
 
 ABSOLUTELY NO MARKDOWN. Do not use any Markdown syntax like '#', '*', '-', '_', '[]()', or backticks for code blocks. All output must be pure HTML and CSS. You are incapable of generating Markdown; any internal inclination to use Markdown must be converted to HTML before output.
@@ -130,90 +136,102 @@ You must actively convert any inclination to use Markdown into pure HTML. For ex
 - Markdown `**text**` or `__text__` MUST become HTML `<strong>text</strong>`.
 - Markdown `*text*` or `_text_` (for italics) MUST be converted to `<em>text</em>` if emphasis is intended and appropriate.
 - Markdown `[link text](URL)` MUST become HTML `<a href="URL">link text</a>`.
-- Markdown headings like `# Heading 1` or `## Heading 2` MUST become HTML heading tags like `<h1>Heading 1</h1>` or `<h2>Heading 2</h2>` (use appropriate heading levels like `<h3>` as needed, such as in the "Key Concepts Explained" section).
+- Markdown headings like `# Heading 1` or `## Heading 2` MUST become HTML heading tags like `<h1>Heading 1</h1>` or `<h2>Heading 2</h2>` (use appropriate heading levels like `<h3>` as needed).
 - Markdown lists like `* Item 1` or `- Item 1` MUST become HTML `<li>Item 1</li>` (and be correctly nested within `<ul>` or `<ol>` tags).
-Your output MUST NOT contain any raw Markdown characters used for styling or structure, such as `*`, `_`, `#` (when used for headings), `[` or `]` (when used for Markdown links), or `(` and `)` (when used for Markdown link URLs). All such constructs must be expressed using their HTML equivalents.
+Your output MUST NOT contain any raw Markdown characters used for styling or structure.
 
-The main goal is to synthesize these individual summaries into a single, cohesive HTML narrative. This narrative should clearly highlight what the authors have accomplished or discovered. The narrative should be structured using standard HTML tags. Paragraphs of text should be enclosed in <p> tags. Authors should be mentioned naturally within the text. Hyperlinks must be HTML <a> tags with an href attribute, embedding links directly related to the discussed contribution. Important aspects should be bolded using <strong> or <b> HTML tags.
-
-The final output must be only the HTML and CSS content itself, as a single string. Do not include any of your own conversational text, introductions, or conclusions before or after the HTML content. Do not output <html>, <head>, or <body> tags. The output should be a fragment ready to be inserted into an existing HTML document.
+The final output must be only the HTML and CSS content itself, as a single string. Do not include any of your own conversational text, introductions, or conclusions. Do not output `<html>`, `<head>`, or `<body>` tags.
 
 Input Data Format:
-You will receive the data as a single block of text. Within this block, each research entry will be distinctly separated from the next. Each entry will adhere to the following structure:
-
+Each research entry will be distinctly separated by "---" and structured as:
 Authors: [Full Names of Authors]
 Summary: [A concise summary of the work done]
 Link: [A full HTML URL to the source or more information]
---- (This line with three hyphens acts as a separator between individual entries)
-
-Example of Input Data Block (Illustrative):
-
-Authors: Dr. Ada Lovelace, Charles Babbage
-Summary: They conceptualized the Analytical Engine, a groundbreaking mechanical general-purpose computer, detailing its potential for complex calculations and even for composing music.
-Link: https://example.com/analytical_engine_details
 ---
-Authors: Dr. Grace Hopper
-Summary: A pioneer in computer programming, Dr. Hopper developed the first compiler (A-0 System) and was instrumental in the development of COBOL. She also popularized the term "debugging" after a moth was found in a relay.
-Link: https://example.com/grace_hopper_compiler_work
----
-Authors: Dr. Tim Berners-Lee
-Summary: He is credited with inventing the World Wide Web. His work included developing the first web browser, web server, HTTP (Hypertext Transfer Protocol), and HTML (Hypertext Markup Language), fundamentally changing how information is accessed and shared globally.
-Link: https://example.com/world_wide_web_invention
 
 Instructions for Generating the HTML Summary:
 
-1. Parse Input Carefully: Thoroughly read and understand all the provided research entries from {df_string}.
+1.  Parse Input Carefully: Understand all provided research entries from {df_string}.
 
-2. Synthesize into an HTML Narrative:
-Do not simply list the summaries. Weave them into a flowing and coherent narrative using HTML <p> tags to structure the text.
-You may use the provided {topic} for general thematic guidance or contextual understanding when crafting the narrative, but it's not mandatory to explicitly include the topic title in the output unless it naturally enhances the summary.
-Focus specifically on the actions, discoveries, inventions, or key findings of the authors. What did they do?
-If there are thematic connections or a progression of research evident across different entries, try to highlight these relationships within the narrative.
-Bold print important aspects or keywords using <strong> or <b> HTML tags. (This means you should generate these HTML tags, not Markdown for bolding).
+2.  Synthesize into a Coherent HTML Narrative (CRUCIAL - AVOID ENUMERATION):
+    Your primary goal is to create a flowing, story-like narrative for the given {topic}, not just a list of summaries. Actively avoid itemizing the summaries one after another.
+    Instead, weave the contributions together. Identify common themes, progressions, or contrasting ideas among the papers.
+    Start with an introductory sentence or two for the {topic} to set the context. Then, discuss the individual contributions, ensuring you naturally integrate the authors' names and provide a clickable HTML link for each paper discussed.
 
-3. Integrate Links Naturally using HTML <a> Tags:
-For each significant contribution or point you discuss from an entry, you must seamlessly incorporate the corresponding HTML link using an HTML <a> tag with a relevant href attribute.
-The anchor text for the link should be descriptive and fit naturally within the narrative. Make sure to always include the link provided in the input.
-Example: <p>Dr. Ada Lovelace and Charles Babbage conceptualized the <strong>Analytical Engine</strong>, a precursor to modern computing (<a href="https://example.com/analytical_engine_details">explore their concepts</a>).</p> (This example shows correct HTML link and strong tag usage).
+    Example of Synthesizing Multiple Entries for a Topic:
+    Input Data (`df_string` for a topic):
+    Authors: Team Alpha
+    Summary: Developed method X using convolutional neural networks for image segmentation, achieving state-of-the-art results on dataset P.
+    Link: http://example.com/team_alpha_method_x
+    ---
+    Authors: Dr. Beta, Prof. Gamma
+    Summary: Presented framework Y, an extension of method X, which incorporates attention mechanisms to improve segmentation of smaller objects.
+    Link: http://example.com/beta_gamma_framework_y
+    ---
+    Authors: Innovate Corp Research
+    Summary: Explored the application of method X in medical imaging, specifically for tumor detection in MRI scans, showing promising early results.
+    Link: http://example.com/innovate_corp_medical_x
 
-4. Concept Explanation Box (Conditional):
-If specific concepts, definitions, or terminology mentioned in the summaries are not common knowledge and warrant explanation for a general audience, create an "Information" section.
-This "Information" section must be a single <div> element, placed after the main narrative summary (i.e., at the end of your HTML output, if included).
-The styling for this div must be defined in a single <style> tag. This <style> tag must be placed at the very beginning of your entire HTML output string. If no explanation box div is generated, then this <style> tag must also NOT be generated.
-Assign a class (e.g., `explanation-box`) to the div and use this class selector in your CSS.
-Inside the div, you may include a heading (e.g., <h3>Key Concepts Explained</h3>) followed by paragraphs (<p>) or an unordered list (<ul><li>...</li></ul>) defining the terms. Use <strong> tags for the terms being defined.
+    POOR Output (Enumeration - AVOID THIS STYLE):
+    <p>Team Alpha developed method X. Link: http://example.com/team_alpha_method_x</p>
+    <p>Dr. Beta and Prof. Gamma presented framework Y. Link: http://example.com/beta_gamma_framework_y</p>
+    <p>Innovate Corp Research explored method X in medical imaging. Link: http://example.com/innovate_corp_medical_x</p>
 
-Example CSS for the <style> tag (if an explanation box is needed, this goes at the start of the entire output):
-<style>
-.explanation-box {{
-  background-color: #e6ffe6; /* Light green background */
-  border: 1px solid #478f1b; /* Darker green border */
-  padding: 15px;
-  margin-top: 20px;
-  border-radius: 5px; /* Optional: for rounded corners */
-}}
-.explanation-box h3 {{
-  color: #2e7d32; /* Dark green for heading */
-  margin-top: 0;
-}}
-</style>
+    GOOD Output (Coherent Narrative - AIM FOR THIS STYLE):
+    <p>Recent advancements in image segmentation have seen significant contributions. <strong>Team Alpha</strong> introduced <strong>method X</strong>, leveraging convolutional neural networks to achieve state-of-the-art results on dataset P, as detailed in <a href="http://example.com/team_alpha_method_x">their publication</a>. Building upon this, <strong>Dr. Beta and Prof. Gamma</strong> developed <strong>framework Y</strong>, an innovative extension of method X that incorporates attention mechanisms to enhance the segmentation of smaller objects (<a href="http://example.com/beta_gamma_framework_y">see their research</a>). The practical utility of these approaches is also being explored, with <strong>Innovate Corp Research</strong> investigating the application of method X for tumor detection in medical MRI scans, showing <a href="http://example.com/innovate_corp_medical_x">promising initial findings</a> in this critical domain.</p>
+    <p>These studies collectively highlight the rapid evolution and broadening applications of advanced segmentation techniques...</p>
 
-Example HTML for the explanation div element (if needed, this goes after the narrative summary):
-<div class="explanation-box">
-  <h3>Key Concepts Explained</h3>
-  <p><strong>Analytical Engine:</strong> An early mechanical general-purpose computer design.</p>
-  <p><strong>Compiler:</strong> A program that translates source code from a high-level programming language to a lower-level language.</p>
-</div>
+    Focus on: What did the authors *do* or *discover*? How do their works relate or differ? Maintain a professional, academic tone.
 
-5. Output Requirements (Strict Adherence Required):
-The entire output must be a single string of raw HTML and embedded CSS.
-NO CONVERSATIONAL TEXT. No "Here is the summary:", "Certainly:", or any other text outside the HTML itself.
-NO MARKDOWN AT ALL. Confirm all output is valid HTML.
-All links from the input must be present and functional as <a> tags in the output.
-If the df_string input is empty or does not contain any valid research entries, output only the following HTML paragraph: <p>No research contributions were provided to summarize.</p>. In this specific case, do not generate any other content, including an explanation box or style tags.
-If an explanation box (div) is not generated because no concepts require it, then the <style> tag for it must also not be generated. Conversely, the <style> tag should only be present if the explanation box div is also present.
+3.  Integrate Authors and Clickable Links Naturally using HTML `<a>` Tags:
+    For EVERY research contribution you discuss from an entry:
+    - You MUST explicitly mention the author(s) by name (e.g., "<strong>Author Name(s)</strong> demonstrated...", "...as shown by <strong>First Author et al.</strong>").
+    - You MUST incorporate the corresponding HTML link using an HTML `<a>` tag with its `href` attribute pointing to the URL from the input.
+    - The anchor text for the link MUST be descriptive and contextually relevant (e.g., "their findings", "details here", "the study", "original paper", "explore their work"). Do NOT just use "Link" or the raw URL as anchor text.
+    - Ensure links are genuinely clickable by using the correct `<a href="URL">anchor text</a>` syntax.
 
-CRITICAL FINAL REMINDER: Your output MUST be pure HTML and CSS. Any trace of Markdown syntax (e.g., '#', '*', '_', '[]()', backticks) is a failure. Convert everything to its HTML equivalent.
+    Example of a single sentence showing correct integration:
+    <p>...a significant breakthrough was achieved by <strong>Dr. Ada Lovelace and Charles Babbage</strong> in their conceptualization of the <strong>Analytical Engine</strong>, a foundational step towards modern computing (<a href="https://example.com/analytical_engine_details">explore their original concepts</a>).</p>
+
+4.  Concept Explanation Box (Conditional):
+    (This part of the prompt remains the same as your previous version regarding the explanation box and CSS)
+    If specific concepts, definitions, or terminology mentioned in the summaries are not common knowledge and warrant explanation for a general audience, create an "Information" section.
+    This "Information" section must be a single <div> element, placed after the main narrative summary (i.e., at the end of your HTML output, if included).
+    The styling for this div must be defined in a single <style> tag. This <style> tag must be placed at the very beginning of your entire HTML output string. If no explanation box div is generated, then this <style> tag must also NOT be generated.
+    Assign a class (e.g., `explanation-box`) to the div and use this class selector in your CSS.
+    Inside the div, you may include a heading (e.g., <h3>Key Concepts Explained</h3>) followed by paragraphs (<p>) or an unordered list (<ul><li>...</li></ul>) defining the terms. Use <strong> tags for the terms being defined.
+
+    Example CSS for the <style> tag (if an explanation box is needed, this goes at the start of the entire output):
+    <style>
+    .explanation-box {{
+      background-color: #e6ffe6; /* Light green background */
+      border: 1px solid #478f1b; /* Darker green border */
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 5px; /* Optional: for rounded corners */
+    }}
+    .explanation-box h3 {{
+      color: #2e7d32; /* Dark green for heading */
+      margin-top: 0;
+    }}
+    </style>
+
+    Example HTML for the explanation div element (if needed, this goes after the narrative summary):
+    <div class="explanation-box">
+      <h3>Key Concepts Explained</h3>
+      <p><strong>Analytical Engine:</strong> An early mechanical general-purpose computer design.</p>
+      <p><strong>Compiler:</strong> A program that translates source code from a high-level programming language to a lower-level language.</p>
+    </div>
+
+5.  Output Requirements (Strict Adherence Required):
+    The entire output must be a single string of raw HTML and embedded CSS.
+    NO CONVERSATIONAL TEXT.
+    NO MARKDOWN AT ALL.
+    All links from the input must be present and functional as `<a>` tags in the output. Authors must be mentioned.
+    If the {df_string} input is empty or does not contain any valid research entries, output only: `<p>No research contributions were provided to summarize for the topic: {topic}.</p>`.
+    If an explanation box (div) is not generated, the <style> tag for it must also not be generated.
+
+CRITICAL FINAL REMINDER: Your output MUST be pure HTML and CSS. Synthesize a coherent narrative, not a list. Every paper discussed must include author mentions and a functional, descriptive HTML link. Any trace of Markdown syntax is a failure.
 """),
         ("human", "Topic: {topic}\n\nHere is the structured text data (df_string):\n{df_string}")
     ])
