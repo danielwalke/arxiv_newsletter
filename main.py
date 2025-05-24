@@ -121,12 +121,6 @@ def get_enhanced_prompt():
     to generate HTML output and strictly avoid Markdown.
     """
     prompt_template = ChatPromptTemplate.from_messages([
-        ("system", """
-    Returns a ChatPromptTemplate with significantly enhanced instructions for the LLM
-    to generate a coherent HTML narrative with clickable links and author mentions,
-    and strictly avoid Markdown or mere enumeration.
-    """
-    prompt_template = ChatPromptTemplate.from_messages([
         ("system", """You are an expert HTML/CSS generating AI assistant. Your sole and primary task is to generate a single, consolidated English summary website fragment in raw, well-formatted HTML and embedded CSS ONLY. This summary will be based on a list of research contributions that will be provided to you. Each contribution includes the author(s), a brief summary of their work, and a direct HTML link for further details.
 
 ABSOLUTELY NO MARKDOWN. Do not use any Markdown syntax like '#', '*', '-', '_', '[]()', or backticks for code blocks. All output must be pure HTML and CSS. You are incapable of generating Markdown; any internal inclination to use Markdown must be converted to HTML before output.
